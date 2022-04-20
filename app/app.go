@@ -10,6 +10,9 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
+	"github.com/luizarnoldch/disco_centro_auth/src/jwt/application"
+	"github.com/luizarnoldch/disco_centro_auth/src/jwt/domain"
+	"github.com/luizarnoldch/disco_centro_auth/src/jwt/infraestructure"
 	"github.com/luizarnoldch/disco_centro_lib/logger"
 )
 
@@ -41,20 +44,35 @@ func Start() {
 	router := mux.NewRouter()
 
 	//estableciendo DB
-	/*
-		dbClient := getDbClient()
+	
+	dbClient := getDbClient()
 
-		//infra := infraestructure.NewDiscoRepositoryStub()
+	//infra := infraestructure.NewDiscoRepositoryStub()
 
-		infra := infraestructure.NewDiscoRepositoryMySQL(dbClient)
-		appli := application.NewDiscoService(infra)
-		dc := DiscoController{appli}
+	infra := infraestructure.NewAuthRepository(dbClient)
+	appli := application.NewLoginService(infra, domain.GetRolePermissions())
+	auth := AuthHandler{appli}
 
-		router.
-			HandleFunc("/api/disco", dc.GetAllDiscos).
-			Methods(http.MethodGet).
-			Name("GetAllDiscos")
-	*/
+	router.
+		HandleFunc("/api/auth/login", auth.Login).
+		Methods(http.MethodPost).
+		Name("LoginUser")
+
+	/*there is no register logic*/
+	router.
+		HandleFunc("/api/auth/regiser", auth.NotImplementedHandler).
+		Methods(http.MethodPost).
+		Name("RegisterUser")
+
+	router.
+		HandleFunc("/api/auth/refresh", auth.Refresh).
+		Methods(http.MethodPost).
+		Name("RefreshToken")
+	router.
+		HandleFunc("/api/auth/verify", auth.Verify).
+		Methods(http.MethodGet).
+		Name("VerifyToken")
+	
 	address := os.Getenv("SERVER_ADDRESS")
 	port := os.Getenv("SERVER_PORT")
 	logger.Info(fmt.Sprintf("Starting server on %s:%s ...", address, port))
