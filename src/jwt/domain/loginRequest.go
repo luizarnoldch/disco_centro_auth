@@ -1,6 +1,6 @@
 package domain
 
 type LoginRequest struct {
-	Username string `json:"username_user"`
-	Password string `json:"password_user"`
+	Username string `json:"username_usuario"`
+	Password string `json:"password_usuario"`
 }

@@ -21,7 +21,10 @@ func (l Login) ClaimsForAccessToken() AccessTokenClaims {
 
 func (l Login) claimsForAdmin() AccessTokenClaims {
 	return AccessTokenClaims{
+		Id:       l.Id,
 		Username: l.Username,
+		Name:     l.Name,
+		LastName: l.LastName,
 		Role:     l.Role,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: time.Now().Add(ACCESS_TOKEN_DURATION).Unix(),

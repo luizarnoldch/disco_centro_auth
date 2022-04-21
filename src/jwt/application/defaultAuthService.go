@@ -11,11 +11,11 @@ import (
 )
 
 type DefaultAuthService struct {
-	repo infraestructure.AuthRepository
+	repo            infraestructure.AuthRepository
 	rolePermissions domain.RolePermissions
 }
 
-func (s DefaultAuthService) ServiceLogin(req domain.LoginRequest)(*domain.LoginResponse, *errs.AppError){
+func (s DefaultAuthService) ServiceLogin(req domain.LoginRequest) (*domain.LoginResponse, *errs.AppError) {
 	var appErr *errs.AppError
 	var login *domain.Login
 	if login, appErr = s.repo.RepoAuthLogin(req.Username, req.Password); appErr != nil {
@@ -32,25 +32,23 @@ func (s DefaultAuthService) ServiceLogin(req domain.LoginRequest)(*domain.LoginR
 		return nil, appErr
 	}
 	return &domain.LoginResponse{
-		AccessToken: accessToken,
+		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}, nil
 }
 
-func (s DefaultAuthService) ServiceVerifyToken(urlParams map[string]string) *errs.AppError{
+func (s DefaultAuthService) ServiceVerifyToken(urlParams map[string]string) *errs.AppError {
 	if jwtToken, err := jwtTokenFromString(urlParams["token"]); err != nil {
 		return errs.NewAuthorizationError(err.Error())
 	} else {
 		if jwtToken.Valid {
 			claims := jwtToken.Claims.(*domain.AccessTokenClaims)
-			if claims.IsAdminRole(){
-				if !claims.IsRequestVerifiedWithTokenClaims(urlParams){
+			if !claims.IsAdminRole() {
 					return errs.NewAuthorizationError("request not verified with the token claims")
-				}
 			}
 			isAuthorized := s.rolePermissions.IsAuthorizedFor(claims.Role, urlParams["routeName"])
 			if !isAuthorized {
-				return errs.NewAuthorizationError(fmt.Sprintf("%s role is not authorized",claims.Role))
+				return errs.NewAuthorizationError(fmt.Sprintf("%s role is not authorized", claims.Role))
 			}
 			return nil
 		} else {
@@ -59,29 +57,26 @@ func (s DefaultAuthService) ServiceVerifyToken(urlParams map[string]string) *err
 	}
 }
 
-func (s DefaultAuthService) ServiceRefreshToken(req domain.RefreshTokenRequest)(*domain.LoginResponse, *errs.AppError){
+func (s DefaultAuthService) ServiceRefreshToken(req domain.RefreshTokenRequest) (*domain.LoginResponse, *errs.AppError) {
 	if vErr := req.IsAccessTokenValid(); vErr != nil {
 		if vErr.Errors == jwt.ValidationErrorExpired {
 			var appErr *errs.AppError
-			if appErr = s.repo.RepoRefreshToken(req.RefreshToken);
-			appErr != nil {
+			if appErr = s.repo.RepoRefreshToken(req.RefreshToken); appErr != nil {
 				return nil, appErr
 			}
 			var accessToken string
 			if accessToken, appErr = domain.NewAccessTokenFromRefreshToken(req.RefreshToken); appErr != nil {
 				return nil, appErr
 			}
-			return &domain.LoginResponse{
-				AccessToken: accessToken,
-			}, nil
+			return &domain.LoginResponse{AccessToken: accessToken}, nil
 		}
 		return nil, errs.NewAuthenticationError("Inavlid Token")
 	}
 	return nil, errs.NewAuthenticationError("Can't generate a new access Token until the current one expires")
 }
 
-func jwtTokenFromString(tokenString string)(*jwt.Token, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &domain.AccessTokenClaims{}, func (token *jwt.Token)(interface{},error){
+func jwtTokenFromString(tokenString string) (*jwt.Token, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &domain.AccessTokenClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(domain.HMAC_SAMPLE_SECRET), nil
 	})
 	if err != nil {

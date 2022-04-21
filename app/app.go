@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
@@ -44,7 +45,7 @@ func Start() {
 	router := mux.NewRouter()
 
 	//estableciendo DB
-	
+
 	dbClient := getDbClient()
 
 	//infra := infraestructure.NewDiscoRepositoryStub()
@@ -60,7 +61,7 @@ func Start() {
 
 	/*there is no register logic*/
 	router.
-		HandleFunc("/api/auth/regiser", auth.NotImplementedHandler).
+		HandleFunc("/api/auth/register", auth.NotImplementedHandler).
 		Methods(http.MethodPost).
 		Name("RegisterUser")
 
@@ -72,7 +73,7 @@ func Start() {
 		HandleFunc("/api/auth/verify", auth.Verify).
 		Methods(http.MethodGet).
 		Name("VerifyToken")
-	
+
 	address := os.Getenv("SERVER_ADDRESS")
 	port := os.Getenv("SERVER_PORT")
 	logger.Info(fmt.Sprintf("Starting server on %s:%s ...", address, port))

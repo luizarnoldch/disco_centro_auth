@@ -33,7 +33,7 @@ func (t AuthToken) NewRefreshToken() (string, *errs.AppError) {
 
 func NewAuthToken(claims AccessTokenClaims) AuthToken {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return AuthToken{token: token}
+	return AuthToken{token}
 }
 
 func NewAccessTokenFromRefreshToken(refreshToken string) (string, *errs.AppError) {
